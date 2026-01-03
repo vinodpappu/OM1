@@ -132,19 +132,28 @@ class GoogleASRInput(FuserInput[GoogleASRSensorConfig, Optional[str]]):
         remote_input = self.config.remote_input
         enable_tts_interrupt = self.config.enable_tts_interrupt
 
-        self.asr: ASRProvider = ASRProvider(
-            rate=rate,
-            chunk=chunk,
-            ws_url=base_url,
-            stream_url=stream_base_url,
-            device_id=microphone_device_id,
-            microphone_name=microphone_name,
-            language_code=language_code,
-            remote_input=remote_input,
-            enable_tts_interrupt=enable_tts_interrupt,
-        )
-        self.asr.start()
-        self.asr.register_message_callback(self._handle_asr_message)
+        try:
+    self.asr: ASRProvider = ASRProvider(
+        rate=rate,
+        chunk=chunk,
+        ws_url=base_url,
+        stream_url=stream_base_url,
+        device_id=microphone_device_id,
+        microphone_name=microphone_name,
+        language_code=language_code,
+        remote_input=remote_input,
+        enable_tts_interrupt=enable_tts_interrupt,
+    )
+    self.asr.start()
+    self.asr.register_message_callback(self._handle_asr_message)
+except Exception as e:
+    logging.warning(
+        "No audio input device found. Disabling Google ASR input. (%s)", e
+    )
+    self.asr = None
+    self.enabled = False
+    return
+
 
         # Initialize sleep ticker provider
         self.global_sleep_ticker_provider = SleepTickerProvider()
